@@ -47,7 +47,7 @@ TopLevel contains sequences for data taking.
 TestSequences contains both hardware tests (e.g. turn a magnetic coil on/off) and stage tests with the atoms (e.g. do some level of RF evaporation and image).
 
 ## Entangleware
-, as well as the two fundamental outputs found in Entangleware.ew_link.py:
+Network communication with the ECA is handled in this folder, as well as the two fundamental outputs found in Entangleware.ew_link.py:
 ```python
 set_digital_state(seqtime, connector, channel_mask, output_enable_state, output_state)
 set_analog_state(seq_time, board, channel, value)
