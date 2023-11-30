@@ -8,6 +8,8 @@ The experiment is run in a "shot" mode, where a single run of the experiment pro
 We divide the generation of these transitions into a hierarchy of sub-sequences. This sub-sequences describe logically separate steps, possibly interleaved in time, with adjustable relative timing between steps. 
 Lower level sequences (found in Base) reflect the underlying hardware (e.g. sequences for magnetic coils), while mid-level sequences (MidLevelSeq) reflect the stage of the experiment (e.g. evaporative cooling).
 
+Included is a library of APIs for useful peripheral hardware, such as Direct Digital Synthesis (DDS) radiofrequency sources and digital-to-analog converters (DACs). 
+
 ## Table of contents
 * [Project Organization](#project-organization)
 * [Entangleware](#entangleware)
@@ -38,7 +40,7 @@ Lower level sequences (found in Base) reflect the underlying hardware (e.g. sequ
  
 The Entangleware folder contains everything necessary for generating and filling the bitstream and network communication with the ECA. 
 
-Base contains the Sequence class for timing (timing.py), functions for analog and digital outputs (outputwrappers.py), and all sequences that directly control hardware (e.g., lasers and magnetic coils). 
+Base contains the Sequence class for timing (timing.py), functions for analog and digital outputs (outputwrappers.py), and all sequences that directly control hardware (e.g., lasers and magnetic coils). The peripheral board libary is found in boards.py.
 
 MidLevel contains sequences for different stages of an experimental run: transerring the MOT to a magnetic trap, RF evaporation, and optical evaporation. All optical evaporation parameters are stored as dictionaries in EvaporationParameters.py.
 
@@ -65,6 +67,12 @@ Here connector and channel are simply integers for the desired connector (there 
 We use two types of timing, absolute and relative. Absolute timing occurs at some time after the hardware trigger. Relative timing occurs after the previous step in the sequence finishes.  The `Sequence` class in Base.timing.py is used to keep track of and increment time within the sequence (where time is a float in units of seconds). All sequences and sub-sequences are daughter classes of this `Sequence` class.
 
 The class has two attributes, `start_time` and `current_time`. `start_time` is when the sequence or sub-sequence begins in units of seconds, relative to the hardware trigger. `current_time` is incremented as the sequence progresses. 
+
+### Output Wrappers
+In addition to the `digital_out` and `analog_out` mentioned above (see [Entangleware](#entangleware)), output wrappers also contains two classes for "continuous" analog ramps, AnalogRamp and AnalogOscillate. The analog source cards have a 16 bit register and output range -10V to 10V, meaning each bit of the register corresponds to $20/2^{16}\approx$ 0.3mV. To minimize transitions the class calculates when each succesive bit flip should occur for the desired ramp trajectory and calls for the analog transition at the appropriate time. Currently supports linear, exponential, and sigmoidal ramps and sine wave oscillations. 
+
+### Boards
+APIs for peripheral hardware: AD9959, AD9854, and AD9910 DDSs and AD5372 DAC. Uses 4 digital lines per board for serial communication with eval board (I/O, Clock, Update, and Reset). Wraps serial communication, providing simple commands to output frequencies or voltages at deterministic times within the sequence.
 
 ## References
 <a id="1">[1]</a> 
