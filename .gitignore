@@ -1,0 +1,10 @@
+# Default ignored files
+/workspace.xml
+*.log
+*.dat
+*.csv
+*.pyc
+*.pyo
+ __pycache__/
+venv/
+.idea/
