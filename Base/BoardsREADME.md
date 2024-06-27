@@ -121,8 +121,51 @@ if the amplitude changes and writes it to the register. In single tone mode, the
 and amplitude at a constant rate set by the total time and number of steps, writing to the FTW register. 
 In chirp mode, the method calculates the slope between frequencies and writes the delta frequency word for each step.
 
-#AD9910 
+# AD9910 
+Analog Devices AD9910 Direct Digital Synthesizer. 
 
-#AD5372
+14 bit, 1 GSPS DDS. The AD9910 has four modes of operation: single tone, RAM modulation, digital ramp modulation, and 
+parallel data port modulation. This API supports two modes: single tone and digital ramp modulation.  These modes 
+provide the frequency, amplitude, and phase of the output signal. 
+
+## initialize 
+Sets the reference clock multiplier and on-chip VCO range for the clock PLL loop. 
+
+## reset
+Pulses on-chip reset pin. 
+
+## single_tone
+Enables single tone output. Writes a single output frequency to the evaluation board.
+
+## Digital Ramp Modulation
+
+### drg_enable
+Enables frequency modulation using the on-chip digital ramp.
+
+### set_ramp
+Sets the parameters for frequency modulation. Takes the maximum and minimum frequency, as well as the size
+and time duration of each step between the limits. Defines both a positive step size and a negative step size.  
+
+### drg_high
+Sets the DR control pin high, initiating positive slope sweep.
+
+### drg_low
+Sets the DR control pin low, initiating negative slope sweep. 
+           
+
+# AD5372
 32 Channel, 16 bit DAC. Maximum output voltage range 20V. Useful as additional analog source on top of the PCI-6733
 hardware native to the DeMarco Lab control hardware. 
+
+## _spi_sync
+Writes the information in bytes_to_write to the selected command register. Same as the Parent class_spi method, but 
+sets sync_pin low before writing.
+
+## _volts_to_code
+Converts output voltage into DAC_CODE (see AD5372 datasheet).
+
+## load
+Loads a voltage to the DAC to output in the future on the selected channel.  
+
+## set
+Loads and immediately outputs a voltage on the DAC on the selected channel.

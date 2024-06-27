@@ -1,4 +1,4 @@
-# define units used in sequences
+ # define units used in sequences
 # time
 sec = 1
 ms = .001

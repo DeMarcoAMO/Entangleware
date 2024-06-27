@@ -626,25 +626,48 @@ class AD9854(PeripheralBoard):
 
 
 class AD9910(PeripheralBoard):
-    def __init__(self, connector1, connector2, io_pin, serial_clock_pin, reset_pin, io_update_pin, DRCTL_pin, ref_clock,
-                 ref_clk_multiplier, input_divider):
+    def __init__(self, connector1, connector2, io_pin, serial_clock_pin, reset_pin, io_update_pin, dr_ctl_pin,
+                 ref_clock, ref_clk_multiplier, input_divider):
+        ''' Serial communication with an AD9910 DDS eval board.
+
+        :param connector1: Output connector for serial communication channels
+        :type connector1: int
+        :param connector2: Output connector for digital ramp control pin
+        :type connector2: int
+        :param io_pin: serial data pin
+        :type io_pin: int
+        :param serial_clock_pin: serial communication clock
+        :type serial_clock_pin: int
+        :param reset_pin: chip reset pin
+        :type reset_pin: int
+        :param io_update_pin: update trigger pin
+        :type io_update_pin: int
+        :param dr_ctl_pin: digital ramp control pin
+        :type dr_ctl_pin: int
+        :param ref_clock: external reference clock frequency
+        :type ref_clock: float
+        :param ref_clk_multiplier: PLL multiplier for reference clock frequency
+        :type ref_clk_multiplier: int
+        :param input_divider: reference clock divider enable
+        :type input_divider: bool
+        '''
         super().__init__(connector=connector1, io_pin=io_pin, serial_clock_pin=serial_clock_pin, reset_pin=reset_pin,
                          io_update_pin=io_update_pin)
         self._AD9910_ref_clock = ref_clock
         # self._AD9910_sys_clock = ref_clk_multiplier * self._AD9910_ref_clock
-        self._AD9910_sysclockinc = 1e-6
+        self._AD9910_sys_clock_inc = 1e-6
         self._AD9910_input_div = input_divider
-        self.AD9910_DRCTLpin = DRCTL_pin
+        self.AD9910_DRCTLpin = dr_ctl_pin
         self.AD9910_connector2 = connector2
-        self._AD9910_refclkmultiplier = ref_clk_multiplier
+        self._AD9910_ref_clk_multiplier = ref_clk_multiplier
 
         # if input divider is bypassed see CFR3[14]
-        if (self._AD9910_refclkmultiplier == 0 and self._AD9910_input_div == 0):
-            self._AD9910_sysclock = self._AD9910_ref_clock / 2
-        if (self._AD9910_refclkmultiplier == 0 and self._AD9910_input_div == 1):
-            self._AD9910_sysclock = self._AD9910_ref_clock
-        if (self._AD9910_refclkmultiplier != 0):
-            self._AD9910_sysclock = self._AD9910_refclkmultiplier * self._AD9910_ref_clock
+        if self._AD9910_ref_clk_multiplier == 0 and self._AD9910_input_div is False:
+            self._AD9910_sys_clock = self._AD9910_ref_clock / 2
+        if self._AD9910_ref_clk_multiplier == 0 and self._AD9910_input_div is True:
+            self._AD9910_sys_clock = self._AD9910_ref_clock
+        if self._AD9910_ref_clk_multiplier != 0:
+            self._AD9910_sys_clock = self._AD9910_ref_clk_multiplier * self._AD9910_ref_clock
 
     def reset(self, dds_time):
         """ Reset DDS by pulsing reset pin.
@@ -663,8 +686,9 @@ class AD9910(PeripheralBoard):
         print("reset tt:", tt)
         return tt
 
-    def VCO_SEL(self, sys_freq):
-        """ Chooses VCO Range for a given system frequency. Only used if PLL is in use.
+    @staticmethod
+    def _vco_sel(self, sys_freq):
+        """ Chooses the range of the on-chip VCO for a given system frequency. Only used if PLL is in use.
 
             :param sys_freq: system clock frequency
             :type sys_freq: float
@@ -672,17 +696,17 @@ class AD9910(PeripheralBoard):
             :return: VCO_range
             """
         diff = []
-        VCO = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05]  # corresponding hex values for each VCO Range
+        vco = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05]  # corresponding hex values for each VCO Range
         med_vals = [440e6, 505e6, 600e6, 740e6, 825e6, 985e6]  # avg value of each VCO range from VCO0 - VCO5
-        if (sys_freq < 420e6 or sys_freq > 1000e6):
-            print("Warning: AD9910 system clock is outside VCO min and max range values.")
+        if sys_freq < 420e6 or sys_freq > 1000e6:
+            raise ValueError("AD9910 system clock is outside VCO min/max range.")
         else:
             for i in range(len(med_vals)):
                 diff.append(abs(sys_freq - med_vals[i]))
             range1 = min(diff)
             ind = diff.index(range1)
-            VCO_range = VCO[ind]
-            return VCO_range
+            vco_range = vco[ind]
+            return vco_range
 
     def initialize(self, dds_time):
         """ Initialize DDS board. Set the reference clock multiplier and VCO gain control.
@@ -701,20 +725,20 @@ class AD9910(PeripheralBoard):
         this_time = dds_time
         payload2 = 0x3F
 
-        if (self._AD9910_refclkmultiplier == 0):
-            if (self._AD9910_input_div == 0):
+        if self._AD9910_ref_clk_multiplier == 0:
+            if self._AD9910_input_div is False:
                 payload3 = 0x40  # PLL is disabled & Input Divider is enabled
             else:
                 payload3 = 0xC0
             payload1 = 0x07  # disables REFCLK_OUT pin & bypasses PLL
             payload4 = 0x00
         else:
-            if (self._AD9910_input_div == 0):
+            if self._AD9910_input_div is False:
                 payload3 = 0x41  # PLL is enabled & Input Divider is enabled, SYNC_CLK enabled
             else:
                 payload3 = 0xC1
-            payload1 = self.VCO_SEL(self._AD9910_sysclock)
-            payload4 = (self._AD9910_refclkmultiplier << 1)
+            payload1 = self._vco_sel(self._AD9910_sys_clock)
+            payload4 = (self._AD9910_ref_clk_multiplier << 1)
 
         output1 = bytearray([0x00, 0x40, 0x08, 0x20])
         output2 = bytearray([payload1, payload2, payload3, payload4])
@@ -728,7 +752,7 @@ class AD9910(PeripheralBoard):
         print("done ini time:", tt)
         return tt
 
-    def DRG_enable(self, dds_time):
+    def drg_enable(self, dds_time):
         """ Enabling the DRG and setting frequency as the digital ramp destination.
 
             :param dds_time: time to enact instructions
@@ -743,7 +767,7 @@ class AD9910(PeripheralBoard):
         self._update_output(this_time)
         return 0
 
-    def DRG_high(self, dds_time):
+    def drg_high(self, dds_time):
         """ Pulsing DRCTL pin high will initiate positive slope sweep.
 
             :param dds_time: time at which DRCTL pin is set to high
@@ -755,7 +779,7 @@ class AD9910(PeripheralBoard):
         ew.set_digital_state(this_time, self.AD9910_connector2, 1 << self.AD9910_DRCTLpin, 1 << self.AD9910_DRCTLpin, 1 << self.AD9910_DRCTLpin)
         return this_time
 
-    def DRG_low(self, dds_time):
+    def drg_low(self, dds_time):
         """ Pulsing DRCTL pin low will initiate negative slope sweep.
 
             :param dds_time: time at which DRCTL pin is set to low
@@ -791,16 +815,16 @@ class AD9910(PeripheralBoard):
         if f_min > f_max:
             print("Warning: Ramp lower limit is greater than ramp upper limit.")
         else:
-            ftw_min = round((1 << 32) * (f_min / self._AD9910_sysclock))
-            ftw_max = round((1 << 32) * (f_max / self._AD9910_sysclock))
+            ftw_min = round((1 << 32) * (f_min / self._AD9910_sys_clock))
+            ftw_max = round((1 << 32) * (f_max / self._AD9910_sys_clock))
             payload0 = struct.pack('>LL', ftw_max, ftw_min)  # sets ramp limits
 
-            STEP_P = round((1 << 32) * (delta_f_p / self._AD9910_sysclock))
-            STEP_N = round((1 << 32) * (delta_f_n / self._AD9910_sysclock))
+            STEP_P = round((1 << 32) * (delta_f_p / self._AD9910_sys_clock))
+            STEP_N = round((1 << 32) * (delta_f_n / self._AD9910_sys_clock))
             payload1 = struct.pack('>LL', STEP_N, STEP_P)  # sets step size of the frequency
 
-            P = round(delta_t_p * self._AD9910_sysclock / 4)
-            N = round(delta_t_n * self._AD9910_sysclock / 4)
+            P = round(delta_t_p * self._AD9910_sys_clock / 4)
+            N = round(delta_t_n * self._AD9910_sys_clock / 4)
             payload2 = struct.pack('>LL', N, P)  # sets the ramp rate
 
             # sequence proceeds backwards from the given time parameter
@@ -823,12 +847,11 @@ class AD9910(PeripheralBoard):
             :return: 0
             """
         this_time = dds_time
-        ftw = round((1 << 32) * (freq / self._AD9910_sysclock))
+        ftw = round((1 << 32) * (freq / self._AD9910_sys_clock))
 
         payload0 = struct.pack('>BB', 0x08, 0xB5) + struct.pack(">h", 0) + struct.pack(">I",ftw)  # first 4 bytes are set to default values
         self._spi(this_time, payload0, 0x0E)
         self._update_output(this_time)
-        print("single tone completed:", this_time)
         return 0
 
 
@@ -875,7 +898,6 @@ class AD5372(PeripheralBoard):
         this_time -= self.spi_min_time
         ew.set_digital_state(this_time, self.connector, (1 << self.sync_pin), (1 << self.sync_pin), (1 << self.sync_pin))
 
-        # TODO:Test this looking at digital waveform, make sure timing of sync pin is still right
         self._spi(this_time, bytes_to_write, register)
         # 2 min_time pulses per bit, 8 bits per byte, n bytes in bytes_to_write
         this_time -= self.spi_min_time * (len(bytes_to_write)*8*2)
@@ -939,10 +961,9 @@ class AD5372(PeripheralBoard):
         this_time = spi_time + self.spi_min_time
         channel_select = (1 << self.ldac_pin)
         out_enable = channel_select
-        state = (1 << self.ldac_pin)
         # set LDAC high before write to prevent output from changing
+        state = (1 << self.ldac_pin)
         ew.set_digital_state(this_time, self.connector, channel_select, out_enable, state)
-        # self.initialize(this_time)
         return 2 * self.spi_min_time
 
     def set(self, spi_time, channel, voltage):

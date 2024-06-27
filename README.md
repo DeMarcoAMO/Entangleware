@@ -218,7 +218,28 @@ evaporation trajectories are saved as dictionaries which are passed to the insta
 These dictionaries are all saved in MidLevelSeq.EvaporationParameters.py.
 
 ### Dipole Release
-Dipole Release 
+`CrossRelease` shuts off the trap, allowing the atoms to fall, and turns the imaging magnetic coils on high for imaging.  
+
+## Test Sequences
+These are the sequences to take a shot on the apparatus. They prepare the atomic gas, release it from the trap, and 
+image it. They also write information to a JSON file on the server that is read in by the other computer used for image
+processing. 
+
+They all have a shared basic format that looks something like: 
+```python
+self.abs(0.00, evap.seq)
+self.rel(0.00, release.seq)
+self.rel(tof, image.norm)
+```
+where `evap` is the evaporation sequence found in MidLevelSeq, `release` is the release sequence also in MidLevelSeq,
+and  `image` is the imaging sequence found in Base.imaging. 
+
+### Test MidLevel
+Runs the apparatus using the sequences in MidLevelSeq.MagneticTraps, including the release and imaging.
+
+### Test Dipole
+Runs the apparatus using the sequences in MidLevelSeq.DipoleTrap and the corresponding release functions in 
+MidLevelSeq.DipoleRelease, including imaging.
 
 ## References
 <a id="1">[1]</a> 

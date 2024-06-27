@@ -78,7 +78,7 @@ is called, `current_time` will be the end time of `step3`.
 #### rel_multiple
 `rel_multiple` is used when you have multiple steps and delay times, but all referencing the end of the same previous 
 step. For instance, if you want `step1` to occur 10ms after the previous step (`step0`) and `step2` to occur 15ms after
-the same `step0` you could call `rel_multiple([[10ms, step1],[5ms, step2]])`. Delay times are additive, meaning each 
+the same `step0` you could call `rel_multiple([(10ms, step1),(5ms, step2)])`. Delay times are additive, meaning each 
 delay time is added to `current_time`, not the end time of `step0`.
 
 #### local timing

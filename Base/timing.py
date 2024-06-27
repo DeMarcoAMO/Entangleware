@@ -75,11 +75,11 @@ class Sequence:
 
     # TODO: make step_list a list of tuples, rather than a list of lists
     def rel_multiple(self, step_list):
-        """ Executes list of methods/functions and delay times. step_list is in format [[delay_time, seq]].
-        Increments current time by delay_time and executes seq, then moves to next pair in list.
-        [[50*ms, step1], [1ms, step2]] will execute step 1 50ms after previous step and step 2 51ms after previous step.
+        """ Executes list of tuples containing methods/functions and delay times. step_list is in format
+        [(delay_time, seq)]. Increments current time by delay_time and executes seq, then moves to next pair in list.
+        [(50*ms, step1), (1ms, step2)] will execute step 1 50ms after previous step and step 2 51ms after previous step.
         :param step_list: nested list of pairs of delay times and methods/functions to be executed
-        :type step_list: list [list]
+        :type step_list: list [tuple]
         :rtype: float
         :return: elapsed time of final element in step_list
         """
