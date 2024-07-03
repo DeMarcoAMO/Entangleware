@@ -181,6 +181,11 @@ The MidLevel Directory contains all the sequences that control different stages 
 into the magnetic quadrupole trap, transporting atoms down to the science cell, RF evaporation, and evaporation in the 
 optical dipole trap. 
 
+Each sequence seen in the [diagram](#MidLevelSchematic) calls the previous sequence, then performs the next step. 
+Together, the sequences shown create a BEC in a crossed-dipole optical trap. 
+
+![MidLevelSchematic](READMEimages/MidLevelSchematic.png)
+
 ### MOT
 `QPCaptureF1` is the sequence that loads the atoms from the MOT into a magnetic quadrupole trap attached to a cart on a 
 linear track that then transports the atoms down to the science cell. The sequence first does a stage of optical 
