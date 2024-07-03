@@ -24,6 +24,8 @@ for each bit and pulsing the serial clock pin on and off. The data is written to
 followed by the data most-significant-bit (MSB). The for loop iterates in reverse order, starting with the 
 least-significant bit (LSB) at the final time and decrementing the time for each subsequent step. 
 
+![SPISchematic](BaseREADMEimages/SPISchematic.png)
+
 ## Update
 All boards have an update pin that triggers commands stored within the on-chip memory buffer to be executed. When a 
 set of instructions is written via the `_spi` method, the instructions are stored in memory. Pulsing the update pin 
