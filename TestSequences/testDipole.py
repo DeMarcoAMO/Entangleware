@@ -12,7 +12,7 @@ import MidLevelSeq.DipoleRelease as Release
 class CrossEvaporation(Sequence):
     def __init__(self, parameters, i=0, save_images=False):
         super().__init__()
-        self.tof = 8 * ms
+        self.tof = 17 * ms
 
         self.evap = Trap.CrossEvap(parameters)
         self.release = Release.CrossRelease()
@@ -26,13 +26,13 @@ class CrossEvaporation(Sequence):
         Comm.seq_info["dipole_low"] = parameters["low"]
         Comm.seq_info["dipole_high"] = parameters["high"]
         Comm.seq_info["hold_time"] = self.hold_time
-        Comm.seq_info["commands"] = ["runfit(highmag, 1, 'gauss','fix', {'offset'}, "
-                                     "'ROI', [1 1; 1020 1020], 'AutoROI', [500,500])",
-                                     "writetoOrigin(highmag,{'hold_time', 'repump_time', 'detune_repump', "
+        Comm.seq_info["commands"] = ["runfit(PixisRb, 1, 'gauss','fix', {'offset'}, "
+                                     "'ROI', [50 350; 850 800], 'AutoROI', [300,300])",
+                                     "writetoOrigin(PixisRb,{'hold_time', 'repump_time', 'detune_repump', "
                                      "'dipole_low','dipole_high' ,'tof',""'Ntot', 'result'})",
-                                     "showres(highmag)"]
+                                     "showres(PixisRb)"]
         if save_images:
-            Comm.seq_info["commands"].append("writetofile(highmag,{'tof','repump_time','probe_power'},'saveRAW',1)")
+            Comm.seq_info["commands"].append("writetofile(PixisRb,{'tof','repump_time','probe_power'},'saveRAW',1)")
 
     @Sequence._update_time
     def seq(self, seq_time):

@@ -968,6 +968,7 @@ class PinchBiasSet(Sequence):
         global bias_on
         bias_on = False
 
+
 # Sequences to change just bias coil (assumes pinch is off). Same as PinchBiasSet, just without Pinch
 class BiasSet(Sequence):
     def __init__(self, total_time, ib0, ib1=0, sig_a=1, exp_tau=1.5*ms):
@@ -1242,53 +1243,3 @@ class ImagingCoil(Sequence):
         self.abs(0, self.analog_ramp.linear)
         global img_on
         img_on = True
-
-
-class MagneticKick(Sequence):
-    def __init__(self, pulse_time=1.5*ms, ag_0=-0.1, ag_1=3, ipb=4, ib0=Trap.bias_quant_current, ip0=0):
-        """Pulses one or magnetic coils on/off quickly to induce center of mass motion of atomic cloud
-
-        :param pulse_time: duration of kick (seconds)
-        :type pulse_time: float
-        :param ag_1: antigravity coil kick current
-        :type ag_1: float
-        :param ipb: pinch and bias coils kick current
-        :type ipd: float
-        :param ib0: initial bias current (before/after kick)
-        :type ib0: float
-        :param ip0: initial pinch current (before/after kick)
-        :type ip0: float
-        """
-        super().__init__()
-        self.tt = pulse_time
-        self.ag_kick1 = AGCoil(i0=0.5, i1=ag_1 + 0.5, total_time=pulse_time)
-        self.ag_kick3 = AGCoil(i0=-0.1, i1=ag_1 + 0.5, total_time=pulse_time)
-
-        self.pinch_bias_coil = PinchBiasSet(ip0=ipb, ib0=ipb)
-
-        self.pb_snap_up = PinchBiasSet(ip0=ip0, ib0=ib0, ip1=ip0+ipb, ib1=ib0+ipb)
-        self.pb_snap_down = PinchBiasSet(ip0=ip0+ipb, ib0=ib0+ipb, ip1=ip0, ib1=ib0)
-
-    @Sequence._update_time
-    def ag(self, seq_time):
-        global ag_on
-        if ag_on:
-            self.abs(0.00, self.ag_kick1.pulse1)
-        else:
-            self.abs(-5*ms, self.ag_kick3.switch_on)
-            self.abs(0.00, self.ag_kick3.pulse3)
-        self.abs(self.tt)
-
-    @Sequence._update_time
-    def pinch_bias(self, seq_time):
-        global pinch_on
-        global bias_on
-        print("bias_on: ", bias_on)
-        if pinch_on or bias_on:
-            self.abs(0.00, self.pb_snap_up.snap_diff)
-            self.abs(self.tt, self.pb_snap_down.snap_diff)
-            self.abs(self.tt)
-        else:
-            self.abs(0.00, self.pinch_bias_coil.snap_on)
-            self.abs(self.tt, self.pinch_bias_coil.clean_up)
-            self.abs(self.tt)

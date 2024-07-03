@@ -20,9 +20,9 @@ writing the instructions, a set of bytes to send to the peripheral board, and th
 bytes are addressing (see board datasheets for examples). 
 
 The method iterates through the individual bits of the command and register bytes, setting the SPI pin appropriately 
-for each bit and pulsing the serial clock pin on and off. The data is iterated through in reverse order, reversing 
-the bytes and calling for the register last. However, the time is decremented each step, meaning the actual output
-start with the register number and then the data MSB first. 
+for each bit and pulsing the serial clock pin on and off. The data is written to the board with the register first, 
+followed by the data most-significant-bit (MSB). The for loop iterates in reverse order, starting with the 
+least-significant bit (LSB) at the final time and decrementing the time for each subsequent step. 
 
 ## Update
 All boards have an update pin that triggers commands stored within the on-chip memory buffer to be executed. When a 

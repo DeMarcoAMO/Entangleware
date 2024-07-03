@@ -57,8 +57,8 @@ for iteration in range(shots):
     # pinch_evap = mid_test.TestPinchEvap(save_images=False)
     # pinch_evap.seq(0.00)
 
-    # dip_evap = dip_test.CrossEvaporation(Param.x_large_thermal, i=iteration, save_images=False)
-    # dip_evap.bias_quant(0.00)
+    dip_evap = dip_test.CrossEvaporation(Param.x_large_bec, i=iteration, save_images=False)
+    dip_evap.seq(0.00)
 
     print(ew.run_sequence())
 
