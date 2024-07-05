@@ -184,7 +184,7 @@ optical dipole trap.
 Each sequence seen in the [diagram](#MidLevelSchematic) calls the previous sequence, then performs the next step. 
 Together, the sequences shown create a BEC in a crossed-dipole optical trap. 
 
-![MidLevelSchematic](READMEimages/MidLevelSchematic.png)
+![MidLevelSchematic](https://github.com/DeMarcoAMO/Entangleware/blob/main/READMEImages/MidLevelSchematic.png)
 
 ### MOT
 `QPCaptureF1` is the sequence that loads the atoms from the MOT into a magnetic quadrupole trap attached to a cart on a 
