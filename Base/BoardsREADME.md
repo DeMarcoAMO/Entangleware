@@ -11,7 +11,7 @@ README for the APIs found within the boards module in the Base directory
 * [AD5372](#ad5372)
 
 # Parent Class
-The `PeripheralBoard` parent class contains the basic parameters and methods for serial communication with peripheral 
+The `PeripheralBoard` parent class is an API, containing the basic parameters and methods for serial communication with peripheral 
 hardware. All boards have two pins for communication, a data/spi pin and a serial clock pin. 
 
 ## SPI
